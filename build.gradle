@@ -1,0 +1,130 @@
+//解决windows下 gradel文件名过长的问题
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "gradle.plugin.ua.eshepelyuk:ManifestClasspath:1.0.0"
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+    }
+}
+plugins {
+    id 'java'
+    id 'scala'
+}
+apply plugin: "ua.eshepelyuk.ManifestClasspath"
+apply plugin: 'com.github.johnrengelman.shadow'
+group 'org.example'
+version '1.0-SNAPSHOT'
+sourceSets {
+    main {
+        scala {
+            srcDirs = ['src/main/scala', 'src/main/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
+}
+sourceCompatibility = 1.8
+
+repositories {
+    //由于国内可能无法正常访问maven中心库，这里就填写了两个基本上能正常访问的maven库地址
+    maven {
+        url 'http://maven.aliyun.com/nexus/content/groups/public/'
+    }
+    maven {
+        url 'https://repository.cloudera.com/artifactory/cloudera-repos/'
+    }
+    mavenCentral()
+}
+ext{
+    //local
+//    sparkVersion="2.3.0"
+//    flinkVersion="1.9.0"
+//    hadoopVersion="2.7.0"
+
+    //remote
+    sparkVersion="2.4.0-cdh6.2.1"
+    flinkVersion="1.9.1-csa1.1.0.0"
+    hadoopVersion="3.0.0-cdh6.2.1"
+    //jacksonVersion="2.9.0"
+}
+
+dependencies {
+
+    //---------------------cdh jar-------------------------
+
+    //>>>>>>>>>>>>>>>>hadoop
+    // https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-common
+    compile group: 'org.apache.hadoop', name: 'hadoop-common', version: "${hadoopVersion}"
+    // https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-client-core
+    compile group: 'org.apache.hadoop', name: 'hadoop-mapreduce-client-core', version: "${hadoopVersion}"
+    // https://mvnrepository.com/artifact/org.apache.spark/spark-core
+//
+//
+//    //>>>>>>>>>>>>>>>>spark
+    compile (group: 'org.apache.spark', name: 'spark-core_2.11', version: "${sparkVersion}"){
+        exclude module: 'com.fasterxml.jackson.moudle'
+        exclude module: 'com.fasterxml.jackson.core'
+    }
+    // https://mvnrepository.com/artifact/org.apache.spark/spark-sql
+    compile group: 'org.apache.spark', name: 'spark-sql_2.11', version: "${sparkVersion}"
+
+    //----------------------flink--------------------------
+    // https://mvnrepository.com/artifact/org.apache.flink/flink-streaming-scala
+    compile (group: 'org.apache.flink', name: 'flink-streaming-java_2.11', version: "${flinkVersion}")
+     //https://mvnrepository.com/artifact/org.apache.flink/flink-connector-kafka
+    compile group: 'org.apache.flink', name: 'flink-connector-kafka_2.11', version: "${flinkVersion}"
+    // https://mvnrepository.com/artifact/org.apache.flink/flink-connector-filesystem
+    compile group: 'org.apache.flink', name: 'flink-connector-filesystem_2.11', version: "${flinkVersion}"
+
+//
+    compile "org.scala-lang:scala-library:2.11"
+
+
+    //jackson
+    compile ('com.fasterxml.jackson.core:jackson-core:2.9.5'){
+        force = true
+    }
+    compile ('com.fasterxml.jackson.module:jackson-module-scala_2.11:2.9.5'){
+        force = true
+    }
+    compile ('com.fasterxml.jackson.core:jackson-databind:2.9.5'){
+        force = true
+    }
+
+    // https://mvnrepository.com/artifact/org.apache.zookeeper/zookeeper
+    compile group: 'org.apache.zookeeper', name: 'zookeeper', version: '3.4.5-cdh6.2.1', ext: 'pom'
+
+}
+shadowJar {
+    archiveBaseName.set('BGDAQ')
+    archiveAppendix.set('TcpClient')
+    archiveVersion.set('shadow')
+    archiveClassifier.set('release')
+    archiveExtension.set('jar')
+    manifest {
+        attributes 'Main-Class': 'Spark.TcpClient'
+    }
+    zip64 true
+}
+jar {
+    archiveBaseName.set('BDDAQ')
+    archiveAppendix.set('AnalyseKafka')
+    archiveVersion.set('1.0')
+    archiveClassifier.set('release')
+    archiveExtension.set('jar')
+    manifest {
+        attributes 'Main-Class': 'Flink.AnalyseKafka'
+    }
+    zip64 true
+}
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+tasks.withType(ScalaCompile) {
+    options.encoding = "UTF-8"
+}

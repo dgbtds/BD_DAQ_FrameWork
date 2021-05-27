@@ -1,0 +1,20 @@
+{
+  "partitions": [{
+    "topic": "FlinkResult",
+    "partition": 0,
+    "offset":249675
+  }, {
+    "topic": "FlinkResult",
+    "partition": 1,
+    "offset":0
+  }, {
+    "topic": "FlinkResult",
+    "partition": 2,
+    "offset": 0
+  }, {
+    "topic": "FlinkResult",
+    "partition": 3,
+    "offset": 0
+  }],
+  "version": 1
+}
